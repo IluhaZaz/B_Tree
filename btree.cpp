@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <algorithm>
+#include <iostream>
 
 using namespace std;
 
@@ -20,6 +21,21 @@ public:
 		_children = vector<BTreeNode<T>*>(0);
 		_parent = nullptr;
 	}
+
+	BTreeNode(vector<T>::iterator start, vector<T>::iterator end) {
+		_keys = vector<T>(start, end);
+		_children = vector<BTreeNode<T>*>(0);
+		_parent = nullptr;
+	}
+
+	bool contains(T key) {
+		for (const auto val : _keys) {
+			if (key == val) {
+				return true;
+			}
+		}
+		return false;
+	}
 };
 
 
@@ -36,6 +52,9 @@ public:
 	BTreeNode<T>* find_node_to_ins(BTreeNode<T>* root, T key) {
 		int child_size = root->_children.size();
 		if (child_size == 0) {
+			if (root->contains(key)) {
+				return nullptr;
+			}
 			return root;
 		}
 		for (int i = 0; i < root->_keys.size(); i++) {
@@ -50,7 +69,17 @@ public:
 	}
 
 	void split_node(BTreeNode<T>* node) {
-
+		BTreeNode<T>* parent = node->_parent;
+		if (!parent) {
+			BTreeNode<T>* new_root = new BTreeNode<T>(node->_keys.begin() + _t - 1, node->_keys.begin() + _t);
+			BTreeNode<T>* l_node = new BTreeNode<T>(node->_keys.begin(), node->_keys.begin() + _t - 1);
+			BTreeNode<T>* r_node = new BTreeNode<T>(node->_keys.begin() + _t, node->_keys.end());
+			new_root->_children.push_back(l_node);
+			new_root->_children.push_back(r_node);
+			l_node->_parent = new_root;
+			r_node->_parent = new_root;
+			_root = new_root;
+		}
 	}
 
 
@@ -58,15 +87,39 @@ public:
 		if (!_root) {
 			_root = new BTreeNode<T>();
 			_root->_keys.push_back(key);
+			sort(_root->_keys.begin(), _root->_keys.end());
 			return true;
 		}
 		BTreeNode<T>* to_ins = find_node_to_ins(_root, key);
+		if (!to_ins) {
+			return false;
+		}
 		if (to_ins->_keys.size() < 2 * _t - 1) {
 			to_ins->_keys.push_back(key);
+			sort(to_ins->_keys.begin(), to_ins->_keys.end());
 			return true;
 		}
-		
+		split_node(to_ins);
+		return this->insert(key);
 	}
 
 	//insert end
+
+	//print start
+
+	void help_print(BTreeNode<T>* node) {
+		for (const auto val : node->_keys) {
+			cout << val << " ";
+		}
+		cout << "\t";
+		for (const auto n : node->_children) {
+			help_print(n);
+		}
+	}
+
+	void print() {
+		help_print(_root);
+	}
+
+	//print end
 };
