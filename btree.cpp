@@ -31,6 +31,23 @@ public:
 		}
 		return false;
 	}
+
+	bool insert(T key) {
+		for (const auto val : _keys) {
+			if (val == key)
+				return false;
+		}
+		_keys.push_back(key);
+		return true;
+	}
+
+	void remove_child(BTreeNode<T>* child) {
+		for (int i = 0; i < _children.size(); i++) {
+			if (child == _children[i]) {
+				_children.erase(_children.begin() + i);
+			}
+		}
+	}
 };
 
 
@@ -45,54 +62,12 @@ public:
 
 	//insert
 
-	BTreeNode<T>* help_find_parent(BTreeNode<T>* parent, BTreeNode<T>* to_find) {
-		for (auto val& : parent->_children) {
-			if (val == to_find) {
-				return parent;
-			}
-		}
-		return 
-	}
-
-	BTreeNode<T>* find_parent(BTreeNode<T>* node) {
-		return help_find_parent(_root, node);
-	}
-
-
-	BTreeNode<T>* half_node(BTreeNode<T>* p, char side) {
-		BTreeNode<T>* res = new BTreeNode<T>();
-		int start, end;
-		int child_size = p->_children.size();
-		if (side == 'l') {
-			start = 0;
-			end = _t - 1;
-
-			res->_children = vector<BTreeNode<T>*>(p->_children.begin(), p->_children.begin() + child_size / 2);
-		}
-		else if (side == 'r') {
-			start = _t;
-			end = 2 * _t - 1;
-
-			res->_children = vector<BTreeNode<T>*>(p->_children.begin() + child_size / 2, p->_children.end());
-		}
-		res->_keys = vector<T>(p->_keys.begin() + start, p->_keys.begin() + end);
-		res->_parent = p->_parent;
-		return res;
-	}
-
-
 	BTreeNode<T>* find_node_to_ins(BTreeNode<T>* root, T key) {
 		int child_size = root->_children.size();
 		if (child_size == 0) {
-			if (root->contains(key)) {
-				return nullptr;
-			}
 			return root;
 		}
 		for (int i = 0; i < root->_keys.size(); i++) {
-			if (root->_keys[i] == key) {
-				return nullptr;
-			}
 			if (key < root->_keys[i]) {
 				return find_node_to_ins(root->_children[i], key);
 			}
@@ -100,62 +75,75 @@ public:
 		return find_node_to_ins(root->_children[child_size - 1], key);
 	}
 
-	void split_node(BTreeNode<T>*& node) {
-		BTreeNode<T>* parent = node->_parent;
-		if (!parent) {
-			BTreeNode<T>* new_root = new BTreeNode<T>();
-			new_root->_keys.push_back(node->_keys[_t - 1]);
-			BTreeNode<T>* l_node = half_node(node, 'l');
-			BTreeNode<T>* r_node = half_node(node, 'r');
-			new_root->_children.push_back(l_node);
-			new_root->_children.push_back(r_node);
-			l_node->_parent = new_root;
-			r_node->_parent = new_root;
-			_root = new_root;
-			node = new_root
+	pair<BTreeNode<T>*, BTreeNode<T>*> split_node(BTreeNode<T>* node) {
+		BTreeNode<T>* left = new BTreeNode<T>();
+		left->_parent = node->_parent;
+		int key_size = node->_keys.size();
+		for (int i = 0; i < key_size/2; i++) {
+			left->insert(node->_keys[i]);
 		}
-		else {
-			if (parent->_keys.size() == 2 * _t - 1) {
-				split_node(parent);
-				delete parent;
-			}
-			BTreeNode<T>* l_node = half_node(node, 'l');
-			BTreeNode<T>* r_node = half_node(node, 'r');
-			parent->_keys.push_back(node->_keys[_t - 1]);
-			sort(node->_keys.begin(), node->_keys.end());
-			parent->_children.push_back(l_node);
-			parent->_children.push_back(r_node);
-			l_node->_parent = parent;
-			r_node->_parent = parent;
-			for (int i = 0; i < parent->_children.size(); i++) {
-				if (parent->_children[i] == node) {
-					parent->_children.erase(parent->_children.begin() + i);
-					break;
-				}
-			}
+		int child_size = node->_children.size();
+		for (int i = 0; i < child_size / 2; i++) {
+			left->_children.push_back(node->_children[i]);
 		}
+		for (auto& val : left->_children) {
+			val->_parent = left;
+		}
+
+
+		BTreeNode<T>* right = new BTreeNode<T>();
+		right->_parent = node->_parent;
+		for (int i = key_size/2 + 1; i < key_size; i++) {
+			right->insert(node->_keys[i]);
+		}
+
+		for (int i = key_size / 2; i < child_size; i++) {
+			right->_children.push_back(node->_children[i]);
+		}
+		for (auto& val : right->_children) {
+			val->_parent = right;
+		}
+		return pair<BTreeNode<T>*, BTreeNode<T>*>(left, right);
 	}
 
 
 	bool insert(T key) {
+		//empty tree
 		if (!_root) {
 			_root = new BTreeNode<T>();
-			_root->_keys.push_back(key);
-			sort(_root->_keys.begin(), _root->_keys.end());
+			_root->insert(key);
 			return true;
 		}
+
 		BTreeNode<T>* to_ins = find_node_to_ins(_root, key);
-		if (!to_ins) {
+		if (!to_ins)
 			return false;
+		if (to_ins->_keys.size() != _t * 2 - 1) {
+			return to_ins->insert(key);
 		}
-		if (to_ins->_keys.size() < 2 * _t - 1) {
-			to_ins->_keys.push_back(key);
-			sort(to_ins->_keys.begin(), to_ins->_keys.end());
-			return true;
+		//to_ins full
+		auto nodes = split_node(to_ins);
+		BTreeNode<T>* left = nodes.first;
+		BTreeNode<T>* right = nodes.second;
+		//	to_ins is root
+		if (!left->_parent) {
+			_root = new BTreeNode<T>();
+			_root->insert(to_ins->_keys[_t - 1]);
+			_root->_children.push_back(left);
+			_root->_children.push_back(right);
+			left->_parent = _root;
+			right->_parent = _root;
+			return this->insert(key);
 		}
-		split_node(to_ins);
-		delete to_ins;
-		return this->insert(key);
+		//to_ins parent is not full
+		if (to_ins->_parent->_keys.size() != 2 * _t - 1) {
+			to_ins->_parent->insert(to_ins->_keys[_t - 1]);
+			to_ins->_parent->_children.push_back(left);
+			to_ins->_parent->_children.push_back(right);
+			to_ins->_parent->remove_child(to_ins);
+			return this->insert(key);
+		}
+		//to_ins parent is full
 	}
 
 	//insert end
