@@ -48,18 +48,73 @@ public:
 			}
 		}
 	}
+
+	pair<BTreeNode<T>*, BTreeNode<T>*> split_node() {
+		BTreeNode<T>* left = new BTreeNode<T>();
+		left->_parent = _parent;
+		int key_size = _keys.size();
+		for (int i = 0; i < key_size / 2; i++) {
+			left->insert(_keys[i]);
+		}
+		int child_size = _children.size();
+		for (int i = 0; i < child_size / 2; i++) {
+			left->_children.push_back(_children[i]);
+		}
+		for (auto& val : left->_children) {
+			val->_parent = left;
+		}
+
+
+		BTreeNode<T>* right = new BTreeNode<T>();
+		right->_parent = _parent;
+		for (int i = key_size / 2 + 1; i < key_size; i++) {
+			right->insert(_keys[i]);
+		}
+
+		for (int i = key_size / 2; i < child_size; i++) {
+			right->_children.push_back(_children[i]);
+		}
+		for (auto& val : right->_children) {
+			val->_parent = right;
+		}
+		return pair<BTreeNode<T>*, BTreeNode<T>*>(left, right);
+	}
 };
 
 
 template <typename T>
 class BTree {
 private:
+	
+public:
 	BTreeNode<T>* _root;
 	int _t;
-public:
-	BTree() : _root(nullptr) {};
-	BTree(int t) : _root(nullptr), _t(t) {};
 
+	BTree() : _root(new BTreeNode<T>()) {};
+	BTree(int t) : _root(new BTreeNode<T>()), _t(t) {};
+
+	//split_node 
+	void split_node(BTreeNode<T>* node) {
+		auto nodes = node->split_node();
+		BTreeNode<T>* left = nodes.first;
+		BTreeNode<T>* right = nodes.second;
+		BTreeNode<T>* parent = node->_parent;
+		bool new_root = false;
+		if (!parent) {
+			parent = new BTreeNode<T>();
+			new_root = true;
+		}
+		parent->_children.push_back(left);
+		parent->_children.push_back(right);
+		parent->remove_child(node);
+		if (new_root) {
+			_root = parent;
+			left->_parent = parent;
+			right->_parent = parent;
+		}
+		insert(node->_keys[_t - 1], parent);
+	}
+	//
 	//insert
 
 	BTreeNode<T>* find_node_to_ins(BTreeNode<T>* root, T key) {
@@ -75,93 +130,40 @@ public:
 		return find_node_to_ins(root->_children[child_size - 1], key);
 	}
 
-	pair<BTreeNode<T>*, BTreeNode<T>*> split_node(BTreeNode<T>* node) {
-		BTreeNode<T>* left = new BTreeNode<T>();
-		left->_parent = node->_parent;
-		int key_size = node->_keys.size();
-		for (int i = 0; i < key_size/2; i++) {
-			left->insert(node->_keys[i]);
-		}
-		int child_size = node->_children.size();
-		for (int i = 0; i < child_size / 2; i++) {
-			left->_children.push_back(node->_children[i]);
-		}
-		for (auto& val : left->_children) {
-			val->_parent = left;
-		}
 
-
-		BTreeNode<T>* right = new BTreeNode<T>();
-		right->_parent = node->_parent;
-		for (int i = key_size/2 + 1; i < key_size; i++) {
-			right->insert(node->_keys[i]);
-		}
-
-		for (int i = key_size / 2; i < child_size; i++) {
-			right->_children.push_back(node->_children[i]);
-		}
-		for (auto& val : right->_children) {
-			val->_parent = right;
-		}
-		return pair<BTreeNode<T>*, BTreeNode<T>*>(left, right);
-	}
-
-
-	bool insert(T key) {
-		//empty tree
-		if (!_root) {
-			_root = new BTreeNode<T>();
-			_root->insert(key);
-			return true;
-		}
-
-		BTreeNode<T>* to_ins = find_node_to_ins(_root, key);
-		if (!to_ins)
-			return false;
-		if (to_ins->_keys.size() != _t * 2 - 1) {
+	bool insert(T key, BTreeNode<T>* node = nullptr) {
+		BTreeNode<T>* to_ins = nullptr;
+		if (!node)
+			to_ins = find_node_to_ins(_root, key);
+		else
+			to_ins = node;
+		if (to_ins->_keys.size() != 2 * _t - 1) {
 			return to_ins->insert(key);
 		}
-		//to_ins full
-		auto nodes = split_node(to_ins);
-		BTreeNode<T>* left = nodes.first;
-		BTreeNode<T>* right = nodes.second;
-		//	to_ins is root
-		if (!left->_parent) {
-			_root = new BTreeNode<T>();
-			_root->insert(to_ins->_keys[_t - 1]);
-			_root->_children.push_back(left);
-			_root->_children.push_back(right);
-			left->_parent = _root;
-			right->_parent = _root;
-			return this->insert(key);
-		}
-		//to_ins parent is not full
-		if (to_ins->_parent->_keys.size() != 2 * _t - 1) {
-			to_ins->_parent->insert(to_ins->_keys[_t - 1]);
-			to_ins->_parent->_children.push_back(left);
-			to_ins->_parent->_children.push_back(right);
-			to_ins->_parent->remove_child(to_ins);
-			return this->insert(key);
-		}
-		//to_ins parent is full
+		split_node(to_ins);
+		to_ins = find_node_to_ins(_root, key);
+		return to_ins->insert(key);
 	}
 
 	//insert end
 
 	//print start
 
-	void help_print(BTreeNode<T>* node) {
+	void help_print(BTreeNode<T>* node, int lvl) {
+		for (int i = 0; i < lvl; i++) {
+			cout << "|";
+		}
 		for (const auto val : node->_keys) {
 			cout << val << " ";
 		}
 		cout << "\t";
 		for (const auto n : node->_children) {
-			help_print(n);
+			help_print(n, lvl + 1);
 		}
 	}
 
 	void print() {
-		help_print(_root);
+		help_print(_root, 0);
 		cout << endl;
 	}
 
