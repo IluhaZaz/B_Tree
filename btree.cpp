@@ -95,6 +95,11 @@ public:
 
 	//split_node 
 	void split_node(BTreeNode<T>* node) {
+		if (node->_parent) {
+			if (node->_parent->_keys.size() == 2 * _t - 1) {
+				split_node(node->_parent);
+			}
+		}
 		auto nodes = node->split_node();
 		BTreeNode<T>* left = nodes.first;
 		BTreeNode<T>* right = nodes.second;
@@ -141,8 +146,10 @@ public:
 			return to_ins->insert(key);
 		}
 		split_node(to_ins);
-		to_ins = find_node_to_ins(_root, key);
-		return to_ins->insert(key);
+		if (node) {
+			return insert(key, node->_parent);
+		}
+		return insert(key);
 	}
 
 	//insert end
