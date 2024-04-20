@@ -38,6 +38,7 @@ public:
 				return false;
 		}
 		_keys.push_back(key);
+		sort(_keys.begin(), _keys.end());
 		return true;
 	}
 
@@ -71,7 +72,7 @@ public:
 			right->insert(_keys[i]);
 		}
 
-		for (int i = key_size / 2; i < child_size; i++) {
+		for (int i = child_size / 2; i < child_size; i++) {
 			right->_children.push_back(_children[i]);
 		}
 		for (auto& val : right->_children) {
@@ -93,6 +94,24 @@ public:
 	BTree() : _root(new BTreeNode<T>()) {};
 	BTree(int t) : _root(new BTreeNode<T>()), _t(t) {};
 
+	//contains
+	bool contains(T key, BTreeNode<T>* node) {
+		if (node->_keys.empty())
+			return false;
+		for (int i = 0; i < node->_keys.size(); i++) {
+			if (node->_keys[i] == key)
+				return true;
+			if (key < node->_keys[i]) {
+				if(!node->_children.empty())
+					return contains(key, node->_children[i]);
+				return false;
+			}
+		}
+		if (!node->_children.empty())
+			return contains(key, node->_children.back());
+		return false;
+	}
+	//
 	//split_node 
 	void split_node(BTreeNode<T>* node) {
 		if (node->_parent) {
@@ -137,6 +156,8 @@ public:
 
 
 	bool insert(T key, BTreeNode<T>* node = nullptr) {
+		if (contains(key, _root))
+			return false;
 		BTreeNode<T>* to_ins = nullptr;
 		if (!node)
 			to_ins = find_node_to_ins(_root, key);
@@ -153,7 +174,11 @@ public:
 	}
 
 	//insert end
+	//add child
+	void add_child(BTreeNode<T>* child) {
 
+	}
+	//
 	//print start
 
 	void help_print(BTreeNode<T>* node, int lvl) {
@@ -169,8 +194,28 @@ public:
 		}
 	}
 
+	void help_print_plus(BTreeNode<T>* node, int lvl) {
+		for (int i = 0; i < lvl; i++) {
+			cout << "|";
+		}
+		if (node->_parent) {
+			cout << "(";
+				for (auto val : node->_parent->_keys) {
+					cout << val << " ";
+				}
+			cout << ")";
+		}
+		for (const auto val : node->_keys) {
+			cout << val << " ";
+		}
+		cout << "\t";
+		for (const auto n : node->_children) {
+			help_print_plus(n, lvl + 1);
+		}
+	}
+
 	void print() {
-		help_print(_root, 0);
+		help_print_plus(_root, 0);
 		cout << endl;
 	}
 
