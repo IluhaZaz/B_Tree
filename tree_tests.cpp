@@ -28,3 +28,22 @@ TEST(BTreeTests, InsertCheck) {
 		a.print();
 	}
 }
+
+TEST(BTreeTests, InsertCheck2) {
+	vector<int> v;
+	for (int i = 0; i < 10; i++)
+		v.push_back(i);
+	BTree<int> a(2);
+	for (auto i : v) {
+		a.insert(i);
+		a.print();
+	}
+	v.clear();
+	for (int i = 0; i < 10; i++)
+		v.push_back(-i);
+
+	for (auto i : v) {
+		a.insert(i);
+		a.print();
+	}
+}

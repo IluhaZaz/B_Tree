@@ -50,6 +50,20 @@ public:
 		}
 	}
 
+	void add_child(BTreeNode<T>* child) {
+		bool inserted = 0;
+		for (int i = 0; i < _children.size(); i++) {
+			if (child->_keys[0] < _children[i]->_keys[0]) {
+				_children.insert(_children.begin() + i, child);
+				inserted = true;
+				break;
+			}
+		}
+		if (!inserted)
+			_children.push_back(child);
+
+	}
+
 	pair<BTreeNode<T>*, BTreeNode<T>*> split_node() {
 		BTreeNode<T>* left = new BTreeNode<T>();
 		left->_parent = _parent;
@@ -59,7 +73,7 @@ public:
 		}
 		int child_size = _children.size();
 		for (int i = 0; i < child_size / 2; i++) {
-			left->_children.push_back(_children[i]);
+			left->add_child(_children[i]);
 		}
 		for (auto& val : left->_children) {
 			val->_parent = left;
@@ -73,7 +87,7 @@ public:
 		}
 
 		for (int i = child_size / 2; i < child_size; i++) {
-			right->_children.push_back(_children[i]);
+			right->add_child(_children[i]);
 		}
 		for (auto& val : right->_children) {
 			val->_parent = right;
@@ -128,8 +142,8 @@ public:
 			parent = new BTreeNode<T>();
 			new_root = true;
 		}
-		parent->_children.push_back(left);
-		parent->_children.push_back(right);
+		parent->add_child(left);
+		parent->add_child(right);
 		parent->remove_child(node);
 		if (new_root) {
 			_root = parent;
@@ -174,11 +188,6 @@ public:
 	}
 
 	//insert end
-	//add child
-	void add_child(BTreeNode<T>* child) {
-
-	}
-	//
 	//print start
 
 	void help_print(BTreeNode<T>* node, int lvl) {
