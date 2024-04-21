@@ -47,3 +47,35 @@ TEST(BTreeTests, InsertCheck2) {
 		a.print();
 	}
 }
+
+TEST(BTreeTests, FindCheck) {
+	vector<int> v;
+	for (int i = 0; i < 10; i++)
+		v.push_back(i);
+	BTree<int> a(2);
+	for (auto i : v) {
+		a.insert(i);
+	}
+	for (int i = 0; i < 10; i++)
+		EXPECT_FALSE(a.find(i) == nullptr);
+	EXPECT_EQ(a.find(-3), nullptr);
+	EXPECT_EQ(a.find(10), nullptr);
+	EXPECT_EQ(a.find(-221), nullptr);
+	EXPECT_EQ(a.find(90), nullptr);
+}
+
+TEST(BTreeTests, ContainsCheck) {
+	vector<int> v;
+	for (int i = 0; i < 10; i++)
+		v.push_back(i);
+	BTree<int> a(2);
+	for (auto i : v) {
+		a.insert(i);
+	}
+	for (int i = 0; i < 10; i++)
+		EXPECT_TRUE(a.contains(i));
+	EXPECT_FALSE(a.contains(-10));
+	EXPECT_FALSE(a.contains(90));
+	EXPECT_FALSE(a.contains(-21));
+	EXPECT_FALSE(a.contains(10));
+}

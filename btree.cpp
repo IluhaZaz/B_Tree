@@ -109,7 +109,7 @@ public:
 	BTree(int t) : _root(new BTreeNode<T>()), _t(t) {};
 
 	//contains
-	bool contains(T key, BTreeNode<T>* node) {
+	bool help_contains(T key, BTreeNode<T>* node) {
 		if (node->_keys.empty())
 			return false;
 		for (int i = 0; i < node->_keys.size(); i++) {
@@ -117,13 +117,17 @@ public:
 				return true;
 			if (key < node->_keys[i]) {
 				if(!node->_children.empty())
-					return contains(key, node->_children[i]);
+					return help_contains(key, node->_children[i]);
 				return false;
 			}
 		}
 		if (!node->_children.empty())
-			return contains(key, node->_children.back());
+			return help_contains(key, node->_children.back());
 		return false;
+	}
+
+	bool contains(T key) {
+		return help_contains(key, _root);
 	}
 	//
 	//split_node 
@@ -170,7 +174,7 @@ public:
 
 
 	bool insert(T key, BTreeNode<T>* node = nullptr) {
-		if (contains(key, _root))
+		if (contains(key))
 			return false;
 		BTreeNode<T>* to_ins = nullptr;
 		if (!node)
@@ -229,4 +233,24 @@ public:
 	}
 
 	//print end
+
+	//find
+	T* help_find(BTreeNode<T>* node, T key) const{
+		if (!node->contains(key) && node->_children.empty())
+			return nullptr;
+		int i = 0;
+		for (; i < node->_keys.size(); i++) {
+			if (key == node->_keys[i])
+				return &node->_keys[i];
+			if (key < node->_keys[i]) {
+				return help_find(node->_children[i], key);
+			}
+		}
+		return help_find(node->_children[i], key);
+	}
+
+	T* find(T key) const{
+		return help_find(_root, key);
+	}
+	//
 };
