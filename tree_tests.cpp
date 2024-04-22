@@ -122,7 +122,11 @@ TEST(BTreeTests, RemoveCheck2) {
 	}
 	a.print();
 	a.remove(8);
+	a.print();
 	a.remove(9);
+	a.print();
 	a.remove(7);
+	a.print();
+	a.remove(-1);
 	a.print();
 }

@@ -307,13 +307,21 @@ public:
 		return help_find_node(_root, key);
 	}
 
-	BTreeNode<T>* merge_nodes(BTreeNode<T>* left, BTreeNode<T>* right) {
+	BTreeNode<T>* merge_nodes(BTreeNode<T>* left, BTreeNode<T>* right, bool with_children = false) {
 		BTreeNode<T>* node = new BTreeNode<T>();
 		for (const auto val : left->_keys) {
 			node->_keys.push_back(val);
 		}
 		for (const auto val : right->_keys) {
 			node->_keys.push_back(val);
+		}
+		if (with_children) {
+			for (const auto child : left->_children) {
+				node->_children.push_back(child);
+			}
+			for (const auto child : right->_children) {
+				node->_children.push_back(child);
+			}
 		}
 		return node;
 	}
@@ -381,7 +389,29 @@ public:
 	}
 
 	void remove_from_middle_node(T key, BTreeNode<T>* node) {
+		int pos = 0;
+		for (; pos < node->_keys.size(); pos++) {
+			if (node->_keys[pos] == key)
+				break;
+		}
+		BTreeNode<T>* left = node->_children[pos];
+		BTreeNode<T>* right = node->_children[pos + 1];
 
+		if (left->_keys.size() != _t - 1) {
+			node->remove(key);
+			node->insert(left->_keys.back());
+			return;
+		}
+		if (right->_keys.size() != _t - 1) {
+			node->remove(key);
+			node->insert(left->_keys[0]);
+			return;
+		}
+		node->remove(key);
+		BTreeNode<T>* new_node = merge_nodes(left, right, true);
+		node->remove_child(left);
+		node->remove_child(right);
+		node->add_child(new_node);
 	}
 
 	void remove(T key) {
@@ -395,7 +425,7 @@ public:
 			remove_from_leaf(key, to_del);
 			return;
 		}
-
+		remove_from_middle_node(key, to_del);
 	}
 
 	//remove end
