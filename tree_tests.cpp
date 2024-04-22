@@ -79,3 +79,26 @@ TEST(BTreeTests, ContainsCheck) {
 	EXPECT_FALSE(a.contains(-21));
 	EXPECT_FALSE(a.contains(10));
 }
+
+TEST(BTreeTests, RemoveCheck) {
+	vector<int> v;
+	for (int i = 0; i < 10; i++)
+		v.push_back(i);
+	BTree<int> a(3);
+	for (auto i : v) {
+		a.insert(i);
+	}
+	v.clear();
+	for (int i = 0; i < 10; i++)
+		v.push_back(-i);
+
+	for (auto i : v) {
+		a.insert(i);
+	}
+	a.print();
+	a.remove(-8);
+	a.remove(-5);
+	a.remove(3);
+	a.remove(-2);
+	a.print();
+}

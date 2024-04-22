@@ -308,7 +308,7 @@ public:
 	}
 
 
-	void remove_from_leaf(T* key, BTreeNode<T>* node) {
+	void remove_from_leaf(T key, BTreeNode<T>* node) {
 		if (node->_keys.size() != _t - 1) {
 			node->remove(key);
 			return;
@@ -317,7 +317,38 @@ public:
 		BTreeNode<T>* left = pair.first;
 		BTreeNode<T>* right = pair.second;
 		if (right) {
-
+			if (right->_keys.size() != _t - 1) {
+				T temp_r = right->_keys[0];
+				right->remove(temp_r);
+				int i = 0;
+				for (; i < node->_parent->_keys.size(); i++) {
+					if (key < node->_parent->_keys[i])
+						break;
+				}
+				T temp_p = node->_parent->_keys[i];
+				node->_parent->remove(temp_p);
+				node->_parent->insert(temp_r);
+				node->remove(key);
+				node->insert(temp_p);
+				return;
+			}
+		}
+		if (left) {
+			if (left->_keys.size() != _t - 1) {
+				T temp_l = left->_keys.back();
+				left->remove(temp_l);
+				int i = 0;
+				for (; i < node->_parent->_keys.size(); i++) {
+					if (temp_l < node->_parent->_keys[i])
+						break;
+				}
+				T temp_p = node->_parent->_keys[i];
+				node->_parent->remove(temp_p);
+				node->_parent->insert(temp_l);
+				node->remove(key);
+				node->insert(temp_p);
+				return;
+			}
 		}
 	}
 
@@ -325,8 +356,6 @@ public:
 		BTreeNode<T>* to_del = find_node(key);
 		if(!to_del)
 			return;
-		if (to_del == _root)
-			_root->remove(key);
 		if(to_del->_children.empty()) {
 			remove_from_leaf(key, to_del);
 		}
