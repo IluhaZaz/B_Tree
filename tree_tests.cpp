@@ -22,7 +22,7 @@ TEST(BTreeTests, InsertCheck) {
 	v.push_back(-2);
 	v.push_back(3);
 	v.push_back(-3);
-	BTree<int> a(2);
+	BTree<int> a(3);
 	for (auto i: v) {
 		a.insert(i);
 		a.print();

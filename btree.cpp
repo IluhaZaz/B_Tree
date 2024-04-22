@@ -94,6 +94,38 @@ public:
 		}
 		return pair<BTreeNode<T>*, BTreeNode<T>*>(left, right);
 	}
+
+	void remove(T key) {
+		for (int i = 0; i < _keys.size(); i++) {
+			if (_keys[i] == key) {
+				_keys.erase(_keys.begin() + i);
+				return;
+			}
+		}
+	}
+
+	pair<BTreeNode<T>*, BTreeNode<T>*> find_neighbours() {
+		T val = _keys[0];
+		int i = 0;
+		int ch_size = _parent->_children.size();
+		if(ch_size == 1)
+			return pair(nullptr, nullptr);
+		for (; i < ch_size; i++) {
+			if (_parent->_children[i]->contains(val))
+				break;
+		}
+		if (i == 0) {
+			if (ch_size >= 2)
+				return pair(nullptr, _parent->_children[i + 1]);
+			return pair(nullptr, nullptr);
+		}
+		if (i == ch_size - 1) {
+			if (ch_size >= 2)
+				return pair(_parent->_children[i - 1], nullptr);
+			return pair(nullptr, nullptr);
+		}
+		return pair(_parent->_children[i - 1], _parent->_children[i + 1]);
+	}
 };
 
 
@@ -227,8 +259,11 @@ public:
 		}
 	}
 
-	void print() {
-		help_print_plus(_root, 0);
+	void print(bool with_parents = true) {
+		if (with_parents)
+			help_print_plus(_root, 0);
+		else
+			help_print(_root, 0);
 		cout << endl;
 	}
 
@@ -253,4 +288,49 @@ public:
 		return help_find(_root, key);
 	}
 	//
+	//remove start
+	BTreeNode<T>* help_find_node(BTreeNode<T>* node, T key) const {
+		if (!node->contains(key) && node->_children.empty())
+			return nullptr;
+		int i = 0;
+		for (; i < node->_keys.size(); i++) {
+			if (key == node->_keys[i])
+				return node;
+			if (key < node->_keys[i]) {
+				return help_find_node(node->_children[i], key);
+			}
+		}
+		return help_find_node(node->_children[i], key);
+	}
+
+	BTreeNode<T>* find_node(T key) {
+		return help_find_node(_root, key);
+	}
+
+
+	void remove_from_leaf(T* key, BTreeNode<T>* node) {
+		if (node->_keys.size() != _t - 1) {
+			node->remove(key);
+			return;
+		}
+		auto pair = node->find_neighbours();
+		BTreeNode<T>* left = pair.first;
+		BTreeNode<T>* right = pair.second;
+		if (right) {
+
+		}
+	}
+
+	void remove(T key) {
+		BTreeNode<T>* to_del = find_node(key);
+		if(!to_del)
+			return;
+		if (to_del == _root)
+			_root->remove(key);
+		if(to_del->_children.empty()) {
+			remove_from_leaf(key, to_del);
+		}
+	}
+
+	//remove end
 };
