@@ -97,36 +97,28 @@ TEST(BTreeTests, RemoveCheck) {
 	}
 	a.print();
 	a.remove(-8);
+	a.print();
 	a.remove(-5);
+	a.print();
 	a.remove(3);
+	a.print();
 	a.remove(-2);
+	a.print();
 	a.remove(9);
+	a.print();
 	a.remove(4);
 	a.print();
 }
 
 TEST(BTreeTests, RemoveCheck2) {
 	vector<int> v;
-	for (int i = 0; i < 10; i++)
+	for (int i = 0; i < 15; i++)
 		v.push_back(i);
-	BTree<int> a(3);
-	for (auto i : v) {
-		a.insert(i);
-	}
-	v.clear();
-	for (int i = 0; i < 10; i++)
-		v.push_back(-i);
-
+	BTree<int> a(2);
 	for (auto i : v) {
 		a.insert(i);
 	}
 	a.print();
-	a.remove(8);
-	a.print();
-	a.remove(9);
-	a.print();
-	a.remove(7);
-	a.print();
-	a.remove(-1);
+	a.remove(2);
 	a.print();
 }

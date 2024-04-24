@@ -335,12 +335,16 @@ public:
 		auto pair = node->find_neighbours();
 		BTreeNode<T>* left = pair.first;
 		BTreeNode<T>* right = pair.second;
+
+		int par_ind = 0;
+		for (; par_ind < node->_parent->_keys.size(); par_ind++) {
+			if (key < node->_parent->_keys[par_ind])
+				break;
+		}
+		if (par_ind == node->_parent->_keys.size())
+			par_ind--;
+
 		if (right) {
-			int par_ind = 0;
-			for (; par_ind < node->_parent->_keys.size(); par_ind++) {
-				if (key < node->_parent->_keys[par_ind])
-					break;
-			}
 			if (right->_keys.size() != _t - 1) {
 				T temp_r = right->_keys[0];
 				right->remove(temp_r);
@@ -351,23 +355,9 @@ public:
 				node->insert(temp_p);
 				return;
 			}
-			BTreeNode<T>* new_node = merge_nodes(node, right);
-			new_node->remove(key);
-			new_node->_parent = node->_parent;
-			new_node->insert(node->_parent->_keys[par_ind]);
-			node->_parent->remove(node->_parent->_keys[par_ind]);
-			node->_parent->add_child(new_node);
-			node->_parent->remove_child(right);
-			node->_parent->remove_child(node);
-			return;
 		}
 		if (left) {
-			int par_ind = 0;
 			T temp_l = left->_keys.back();
-			for (; par_ind < node->_parent->_keys.size(); par_ind++) {
-				if (temp_l < node->_parent->_keys[par_ind])
-					break;
-			}
 			if (left->_keys.size() != _t - 1) {
 				left->remove(temp_l);
 				T temp_p = node->_parent->_keys[par_ind];
@@ -377,14 +367,33 @@ public:
 				node->insert(temp_p);
 				return;
 			}
-			BTreeNode<T>* new_node = merge_nodes(left, node);
-			new_node->remove(key);
-			new_node->_parent = node->_parent;
-			new_node->insert(node->_parent->_keys[par_ind]);
-			node->_parent->remove(node->_parent->_keys[par_ind]);
+		}
+		if (right) {
+			T temp = node->_parent->_keys[par_ind];
+			remove(temp);
+			remove(key);
+			insert(temp);
+			//BTreeNode<T>* new_node = merge_nodes(node, right);
+			//node->_parent->add_child(new_node);
+			//node->_parent->remove_child(right);
+			//node->_parent->remove_child(node);
+			//new_node->_parent = node->_parent;
+			//new_node->remove(key);
+			//new_node->insert(temp);
+			return;
+		}
+		if (left) {
+			T temp = node->_parent->_keys[par_ind];
+			remove(temp);
+			remove(key);
+			insert(temp);
+			/*BTreeNode<T>* new_node = merge_nodes(left, node);
 			node->_parent->add_child(new_node);
 			node->_parent->remove_child(left);
 			node->_parent->remove_child(node);
+			new_node->_parent = node->_parent;
+			new_node->remove(key);
+			new_node->insert(temp);*/
 		}
 	}
 
@@ -394,24 +403,30 @@ public:
 			if (node->_keys[pos] == key)
 				break;
 		}
+		if (pos == node->_keys.size())
+			pos--;
 		BTreeNode<T>* left = node->_children[pos];
 		BTreeNode<T>* right = node->_children[pos + 1];
 
 		if (left->_keys.size() != _t - 1) {
 			node->remove(key);
-			node->insert(left->_keys.back());
+			T temp = left->_keys.back();
+			left->remove(temp);
+			node->insert(temp);
 			return;
 		}
 		if (right->_keys.size() != _t - 1) {
 			node->remove(key);
-			node->insert(left->_keys[0]);
+			T temp = right->_keys[0];
+			right->remove(temp);
+			node->insert(temp);
 			return;
 		}
-		node->remove(key);
 		BTreeNode<T>* new_node = merge_nodes(left, right, true);
 		node->remove_child(left);
 		node->remove_child(right);
 		node->add_child(new_node);
+		node->remove(key);
 	}
 
 	void remove(T key) {
