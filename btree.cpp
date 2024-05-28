@@ -61,6 +61,7 @@ public:
 		}
 		if (!inserted)
 			_children.push_back(child);
+		child->_parent = this;
 
 	}
 
@@ -307,7 +308,7 @@ public:
 		return help_find_node(_root, key);
 	}
 
-	BTreeNode<T>* merge_nodes(BTreeNode<T>* left, BTreeNode<T>* right, bool with_children = false) {
+	BTreeNode<T>* merge_nodes(BTreeNode<T>* left, BTreeNode<T>* right, bool with_children = true) {
 		BTreeNode<T>* node = new BTreeNode<T>();
 		for (const auto val : left->_keys) {
 			node->_keys.push_back(val);
@@ -332,9 +333,6 @@ public:
 			node->remove(key);
 			return;
 		}
-		auto pair = node->find_neighbours();
-		BTreeNode<T>* left = pair.first;
-		BTreeNode<T>* right = pair.second;
 
 		int par_ind = 0;
 		for (; par_ind < node->_parent->_keys.size(); par_ind++) {
@@ -343,58 +341,49 @@ public:
 		}
 		if (par_ind == node->_parent->_keys.size())
 			par_ind--;
+		T temp_par = node->_parent->_keys[par_ind];
 
+		auto pair = node->find_neighbours();
+		BTreeNode<T>* left = pair.first;
+		BTreeNode<T>* right = pair.second;
 		if (right) {
 			if (right->_keys.size() != _t - 1) {
 				T temp_r = right->_keys[0];
 				right->remove(temp_r);
-				T temp_p = node->_parent->_keys[par_ind];
-				node->_parent->remove(temp_p);
+				node->_parent->remove(temp_par);
 				node->_parent->insert(temp_r);
 				node->remove(key);
-				node->insert(temp_p);
+				node->insert(temp_par);
 				return;
 			}
 		}
+
 		if (left) {
-			T temp_l = left->_keys.back();
 			if (left->_keys.size() != _t - 1) {
+				T temp_l = left->_keys.back();
 				left->remove(temp_l);
-				T temp_p = node->_parent->_keys[par_ind];
-				node->_parent->remove(temp_p);
+				node->_parent->remove(temp_par);
 				node->_parent->insert(temp_l);
 				node->remove(key);
-				node->insert(temp_p);
+				node->insert(temp_par);
 				return;
 			}
 		}
+
 		if (right) {
-			T temp = node->_parent->_keys[par_ind];
-			remove(temp);
+			remove(temp_par);
+			insert(temp_par);
 			remove(key);
-			insert(temp);
-			//BTreeNode<T>* new_node = merge_nodes(node, right);
-			//node->_parent->add_child(new_node);
-			//node->_parent->remove_child(right);
-			//node->_parent->remove_child(node);
-			//new_node->_parent = node->_parent;
-			//new_node->remove(key);
-			//new_node->insert(temp);
 			return;
 		}
+		
 		if (left) {
-			T temp = node->_parent->_keys[par_ind];
-			remove(temp);
+			remove(temp_par);
+			insert(temp_par);
 			remove(key);
-			insert(temp);
-			/*BTreeNode<T>* new_node = merge_nodes(left, node);
-			node->_parent->add_child(new_node);
-			node->_parent->remove_child(left);
-			node->_parent->remove_child(node);
-			new_node->_parent = node->_parent;
-			new_node->remove(key);
-			new_node->insert(temp);*/
+			return;
 		}
+
 	}
 
 	void remove_from_middle_node(T key, BTreeNode<T>* node) {
@@ -408,34 +397,38 @@ public:
 		BTreeNode<T>* left = node->_children[pos];
 		BTreeNode<T>* right = node->_children[pos + 1];
 
-		if (left->_keys.size() != _t - 1) {
+		if(left)
+			if (left->_keys.size() != _t - 1) {
+				node->remove(key);
+				node->insert(left->_keys.back());
+				left->remove(left->_keys.back());
+				return;
+			}
+
+		if(right)
+			if (right->_keys.size() != _t - 1) {
+				node->remove(key);
+				node->insert(right->_keys[0]);
+				right->remove(right->_keys[0]);
+				return;
+			}
+		if (node->_keys.size() != _t - 1) {
+			BTreeNode<T>* new_node = merge_nodes(left, right);
+			node->remove_child(left);
+			node->remove_child(right);
+			node->add_child(new_node);
 			node->remove(key);
-			T temp = left->_keys.back();
-			left->remove(temp);
-			node->insert(temp);
 			return;
 		}
-		if (right->_keys.size() != _t - 1) {
-			node->remove(key);
-			T temp = right->_keys[0];
-			right->remove(temp);
-			node->insert(temp);
-			return;
+		else {
+			cout << "Holy shit" << " ";
 		}
-		BTreeNode<T>* new_node = merge_nodes(left, right, true);
-		node->remove_child(left);
-		node->remove_child(right);
-		node->add_child(new_node);
-		node->remove(key);
 	}
 
 	void remove(T key) {
 		BTreeNode<T>* to_del = find_node(key);
 		if(!to_del)
 			return;
-		if (to_del == _root) {
-
-		}
 		if(to_del->_children.empty()) {
 			remove_from_leaf(key, to_del);
 			return;

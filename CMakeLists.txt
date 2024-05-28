@@ -21,6 +21,10 @@ endif()
 add_library(btree SHARED "btree.cpp")
 target_include_directories(btree PUBLIC "include")
 
+# Объявляем библиотеку
+add_library(set SHARED "set.cpp")
+target_include_directories(set PUBLIC "include")
+
 # Подключаем googletest
 include(FetchContent)
 FetchContent_Declare(googletest URL https://github.com/google/googletest/archive/6b63c98ac43efc992122f1da12aaf0a0e0658206.zip)
@@ -31,4 +35,5 @@ FetchContent_MakeAvailable(googletest)
 add_executable(tree_tests "tree_tests.cpp")
 target_link_libraries(tree_tests btree GTest::gtest_main)
 
-
+add_executable(testing "testing.cpp")
+target_link_libraries(testing btree set GTest::gtest_main)
