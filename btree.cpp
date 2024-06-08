@@ -33,12 +33,21 @@ public:
 	}
 
 	bool insert(T key) {
-		for (const auto val : _keys) {
-			if (val == key)
-				return false;
+		bool have = false;
+		int i = 0;
+		for (const auto& val : _keys) {
+			if (val == key) {
+				have = true;
+				break;
+			}
+			if (key < val)
+				break;
+			else
+				++i;
 		}
-		_keys.push_back(key);
-		sort(_keys.begin(), _keys.end());
+		if (have)
+			return false;
+		_keys.insert(_keys.begin() + i, key);
 		return true;
 	}
 
@@ -198,6 +207,8 @@ public:
 			return root;
 		}
 		for (int i = 0; i < root->_keys.size(); i++) {
+			if (key == root->_keys[i])
+				return nullptr;
 			if (key < root->_keys[i]) {
 				return find_node_to_ins(root->_children[i], key);
 			}
@@ -207,11 +218,12 @@ public:
 
 
 	bool insert(T key, BTreeNode<T>* node = nullptr) {
-		if (contains(key))
-			return false;
 		BTreeNode<T>* to_ins = nullptr;
-		if (!node)
+		if (!node) {
 			to_ins = find_node_to_ins(_root, key);
+			if (!to_ins)
+				return false;
+		}
 		else
 			to_ins = node;
 		if (to_ins->_keys.size() != 2 * _t - 1) {
@@ -421,7 +433,7 @@ public:
 			return;
 		}
 		else {
-			cout << "Holy shit" << " ";
+			//dw;dd;[dw;d[
 		}
 	}
 

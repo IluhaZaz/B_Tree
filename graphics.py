@@ -1,12 +1,12 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-values = [0, 50000, 100000, 200000, 300000, 400000, 500000]
+values = [0, 50000, 100000, 200000, 300000, 400000, 500000, 600000, 700000, 800000, 900000, 1000000]
 values = [i/1000 for i in values]
 
 with open("insert.txt") as f:
     time = f.readline()
-time = [0, 0 ,0, 0] + [int(i) for i in time.split()]
+time = [0, 0 ,0, 0] + [float(i) for i in time.split()]
 
 b_tree = time[::4]
 set = time[1::4]
@@ -34,7 +34,7 @@ bin_tree = time[2::4]
 vector = time[3::4]
 
 plt.xlabel('Количество элементов, шт')
-plt.ylabel('Время выполнения, мс')
+plt.ylabel('Среднее время поиска одного элемента, нс')
 plt.title('Поиск')
 
 plt.plot(values, b_tree, label = "Би дерево")
@@ -45,7 +45,7 @@ plt.legend()
 plt.show()
 
 plt.xlabel('Количество элементов, шт')
-plt.ylabel('Время выполнения, мс')
+plt.ylabel('Среднее время поиска одного элемента, нс')
 plt.title('Поиск')
 
 plt.plot(values, b_tree, label = "Би дерево")

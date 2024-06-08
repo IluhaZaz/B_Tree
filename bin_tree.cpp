@@ -52,6 +52,10 @@ public:
         return _root;
     }
 
+    bool find(T value) {
+        return find(_root, value);
+    }
+
 private:
     Node<T>* _root;
 
@@ -98,7 +102,6 @@ private:
             delete node;
         }
     }
-
 
     bool contains(Node<T>* node, T value) {
         if (node == nullptr) {

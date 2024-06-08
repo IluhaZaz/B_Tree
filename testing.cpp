@@ -11,14 +11,14 @@
 
 void main() {
 	{
-		vector<int> sizes{ 50000, 100000, 200000, 300000, 400000, 500000};
+		vector<int> sizes{ 50000, 100000, 200000, 300000, 400000, 500000, 600000, 700000, 800000, 900000, 1000000 };
 
 		std::ofstream file;
 		file.open("C:\\b_tree\\insert.txt");
 
 		for (const auto& size : sizes) {
 
-			BTree<int> b(30);
+			BTree<int> b(20);
 			auto begin = std::chrono::steady_clock::now();
 			for (int i = 0; i < size; i++) {
 				b.insert(rand());
@@ -65,10 +65,10 @@ void main() {
 		std::ofstream file;
 		file.open("C:\\b_tree\\search.txt");
 
-		vector<int> sizes{ 50000, 100000, 200000, 300000, 400000, 500000};
+		vector<int> sizes{ 50000, 100000, 200000, 300000, 400000, 500000, 600000, 700000, 800000, 900000, 1000000 };
 		for (const auto& size : sizes) {
 
-			BTree<int> b(30);
+			BTree<int> b(20);
 			set<int> s;
 			BinaryTree<int> bin;
 			vector<int> v;
@@ -91,7 +91,7 @@ void main() {
 			auto end = std::chrono::steady_clock::now();
 			auto elapsed_ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin);
 			std::cout << elapsed_ms << " BTree for " << size << " values" << endl;
-			file << elapsed_ms.count() << " ";
+			file << elapsed_ms.count() * 1000000 / size << " ";
 
 			begin = std::chrono::steady_clock::now();
 			for (int i = 0; i < size; i++) {
@@ -100,7 +100,7 @@ void main() {
 			end = std::chrono::steady_clock::now();
 			elapsed_ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin);
 			std::cout << elapsed_ms << " Set for " << size << " values" << endl;
-			file << elapsed_ms.count() << " ";
+			file << elapsed_ms.count() * 1000000 / size << " ";
 
 			begin = std::chrono::steady_clock::now();
 			for (int i = 0; i < size; i++) {
@@ -109,7 +109,7 @@ void main() {
 			end = std::chrono::steady_clock::now();
 			elapsed_ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin);
 			std::cout << elapsed_ms << " Binary tree for " << size << " values" << endl;
-			file << elapsed_ms.count() << " ";
+			file << elapsed_ms.count() * 1000000 / size << " ";
 
 			begin = std::chrono::steady_clock::now();
 			for (int i = 0; i < size; i++) {
@@ -118,7 +118,7 @@ void main() {
 			end = std::chrono::steady_clock::now();
 			elapsed_ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin);
 			std::cout << elapsed_ms << " Vector for " << size << " values" << endl;
-			file << elapsed_ms.count() << " ";
+			file << elapsed_ms.count() * 1000000 / size << " ";
 		}
 	}
 }
