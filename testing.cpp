@@ -18,7 +18,7 @@ void main() {
 
 		for (const auto& size : sizes) {
 
-			BTree<int> b(20);
+			BTree<int> b(15);
 			auto begin = std::chrono::steady_clock::now();
 			for (int i = 0; i < size; i++) {
 				b.insert(rand());
@@ -68,7 +68,7 @@ void main() {
 		vector<int> sizes{ 50000, 100000, 200000, 300000, 400000, 500000, 600000, 700000, 800000, 900000, 1000000 };
 		for (const auto& size : sizes) {
 
-			BTree<int> b(20);
+			BTree<int> b(15);
 			set<int> s;
 			BinaryTree<int> bin;
 			vector<int> v;

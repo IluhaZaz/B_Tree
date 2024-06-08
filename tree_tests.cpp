@@ -119,6 +119,6 @@ TEST(BTreeTests, RemoveCheck2) {
 		a.insert(i);
 	}
 	a.print();
-	a.remove(6);
+	a.remove(6); //still doent work properly
 	a.print();
 }

@@ -44,7 +44,7 @@ plt.plot(values, vector, label = "Вектор")
 plt.legend()
 plt.show()
 
-plt.xlabel('Количество элементов, шт')
+plt.xlabel('Количество элементов, тыс. шт')
 plt.ylabel('Среднее время поиска одного элемента, нс')
 plt.title('Поиск')
 
