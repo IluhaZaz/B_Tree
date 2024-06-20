@@ -1,151 +1,182 @@
 #pragma once
-#include<iostream>
+#include <iostream>
 #include <random>
-#include <string>
-#include <chrono>
-#include <cstdint>
 
-using namespace std;
+	template <typename T>
+	struct Node
+	{
+		T _val;
+		Node* _left;
+		Node* _right;
+		Node(T val, Node* left = nullptr, Node* right = nullptr) : _val(val), _left(left), _right(right) {}
+	};
 
-template<typename T>
-class Node {
-public:
-    T data;
-    Node<T>* left;
-    Node<T>* right;
-    Node(T value) {
-        data = value;
-        left = nullptr;
-        right = nullptr;
-    }
-};
+	template <typename T>
+	class BinaryTree {
+	private:
+		Node<T>* _root;
 
-template<typename T>
-class BinaryTree {
-public:
-    BinaryTree() {
-        _root = nullptr;
-    }
 
-    ~BinaryTree() {
-        clear(_root);
-    }
+		Node<T>* create_copy_tree(Node<T>* root) {
+			if (!root) {
+				return nullptr;
+			}
 
-    void print() {
-        print(_root);
-        std::cout << std::endl;
-    }
+			Node<T>* new_node = new Node<T>(root->_val);
+			new_node->_left = create_copy_tree(root->_left);
+			new_node->_right = create_copy_tree(root->_right);
 
-    bool insert(T value) {
-        return insert(_root, value);
-    }
+			return new_node;
+		}
 
-    bool contains(T value) {
-        return contains(_root, value);
-    }
+		void clear(Node<T>* head) {
+			if (!head) {
+				return;
+			}
+			clear(head->_left);
+			clear(head->_right);
+			delete head;
+		}
 
-    bool erase(T value) {
-        return erase(_root, value);
-    }
+		void recursion(Node<T>* root) {
+			if (!root) {
+				return;
+			}
+			recursion(root->_left);
+			std::cout << root->_val << ' ';
+			recursion(root->_right);
+		}
 
-    Node<T>* get_root() const {
-        return _root;
-    }
+		bool erase_with_root(Node<T>*& root, const int& val) {
+			if (!root) {
+				return false;
+			}
 
-    bool find(T value) {
-        return find(_root, value);
-    }
+			if (root->_val > val) {
+				return erase_with_root(root->_left, val);
+			}
+			else if (root->_val < val) {
+				return erase_with_root(root->_right, val);
+			}
 
-private:
-    Node<T>* _root;
+			if (!root->_left) {
+				Node<T>* temp = root->_right;
+				delete root;
+				root = temp;
+				return true;
+			}
+			else if (!root->_right) {
+				Node<T>* temp = root->_left;
+				delete root;
+				root = temp;
+				return true;
+			}
+			else {
+				Node<T>* succParent = root;
+				Node<T>* succ = root->_right;
+				while (succ->_left != NULL) {
+					succParent = succ;
+					succ = succ->_left;
+				}
+				if (succParent != root)
+					succParent->_left = succ->_right;
+				else
+					succParent->_right = succ->_right;
 
-    Node<T>* copy(Node<T>* node) {
-        if (node) {
-            Node<T>* new_node = new Node<T>(node->data);
-            new_node->left = copy(node->left);
-            new_node->right = copy(node->right);
-            return new_node;
-        }
-        return nullptr;
-    }
+				root->_val = succ->_val;
 
-    bool insert(Node<T>*& node, T value) {
+				delete succ;
+				return true;
+			}
+		}
 
-        if (contains(value))
-            return false;
+	public:
 
-        if (node == nullptr) {
-            node = new Node<T>(value);
-            return true;
-        }
-        if (value < node->data) {
-            return insert(node->left, value);
-        }
-        else if (value > node->data) {
-            return insert(node->right, value);
-        }
-        return false;
-    }
+		BinaryTree() : _root(nullptr) {}
 
-    void print(Node<T>* node) {
-        if (node) {
-            print(node->left);
-            std::cout << node->data << " ";
-            print(node->right);
-        }
-    }
+		BinaryTree(std::vector<T> data) : _root(nullptr) {
+			for (const auto& el : data) {
+				insert(el);
+			}
+		}
+		BinaryTree(const BinaryTree<T>& other) {
+			_root = create_copy_tree(other._root);
+		}
 
-    void clear(Node<T>* node) {
-        if (node) {
-            clear(node->left);
-            clear(node->right);
-            delete node;
-        }
-    }
+		~BinaryTree() {
+			clear(_root);
+		}
 
-    bool contains(Node<T>* node, T value) {
-        if (node == nullptr) {
-            return false;
-        }
-        if (value < node->data) {
-            return contains(node->left, value);
-        }
-        else if (value > node->data) {
-            return contains(node->right, value);
-        }
-        return true;
-    }
+		BinaryTree<T>& operator = (BinaryTree<T> other) {
+			std::swap(_root, other._root);
+			return *this;
+		}
 
-    bool erase(Node<T>*& node, T value) {
-        if (node == nullptr) {
-            return false;
-        }
-        if (value < node->data) {
-            return erase(node->left, value);
-        }
-        else if (value > node->data) {
-            return erase(node->right, value);
-        }
-        else {
-            if (node->left == nullptr) {
-                Node<T>* temp = node->right;
-                delete node;
-                node = temp;
-            }
-            else if (node->right == nullptr) {
-                Node<T>* temp = node->left;
-                delete node;
-                node = temp;
-            }
-            else {
-                Node<T>* temp = node->right;
-                while (temp->left) {
-                    temp = temp->left;
-                }
-                node->data = temp->data;
-                erase(node->right, temp->data);
-            }
-            return true;
-        }
-    }
-};
+		Node<T>* get_root() const {
+			return _root;
+		}
+
+		bool insert(const int& val) {
+			Node<T>* new_node = new Node<T>(val);
+			if (!_root) {
+				_root = new_node;
+				return true;
+			}
+			Node<T>* cur = _root;
+			Node<T>* ptr = nullptr;
+
+			while (cur)
+			{
+				ptr = cur;
+				if (val < cur->_val) {
+					cur = cur->_left;
+				}
+				else if (val > cur->_val) {
+					cur = cur->_right;
+
+				}
+				else {
+					delete new_node;
+					return false;
+				}
+			}
+
+			if (val < ptr->_val) {
+				ptr->_left = new_node;
+			}
+			else {
+				ptr->_right = new_node;
+			}
+			return true;
+		}
+
+		void print() {
+			if (_root) {
+				recursion(_root);
+			}
+			std::cout << std::endl;
+		}
+
+		bool contains(const int& val) {
+			if (!_root) {
+				return false;
+			}
+			Node<T>* cur = _root;
+			while (cur) {
+				if (cur->_val == val) {
+					return true;
+				}
+				else if (cur->_val < val) {
+					cur = cur->_right;
+				}
+				else if (cur->_val > val) {
+					cur = cur->_left;
+				}
+			}
+			return false;
+		}
+
+		bool erase(const int& val) {
+			return erase_with_root(_root, val);
+		}
+	};

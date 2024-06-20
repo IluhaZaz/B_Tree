@@ -14,7 +14,7 @@ bin_tree = time[2::4]
 vector = time[3::4]
 
 plt.xlabel('Количество элементов,  тыс. шт')
-plt.ylabel('Время выполнения, мс')
+plt.ylabel('Среднее время вставки 1 элемента, нс')
 plt.title('Вставка')
 
 plt.plot(values, b_tree, label = "Би дерево")

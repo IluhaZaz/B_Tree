@@ -26,7 +26,7 @@ void main() {
 			auto end = std::chrono::steady_clock::now();
 			auto elapsed_ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin);
 			std::cout << elapsed_ms << " BTree for " << size << " values" << endl;
-			file << elapsed_ms.count() << " ";
+			file << elapsed_ms.count() * 1000000 / size << " ";
 
 			set<int> s;
 			begin = std::chrono::steady_clock::now();
@@ -36,7 +36,7 @@ void main() {
 			end = std::chrono::steady_clock::now();
 			elapsed_ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin);
 			std::cout << elapsed_ms << " Set for " << size << " values" << endl;
-			file << elapsed_ms.count() << " ";
+			file << elapsed_ms.count() * 1000000 / size << " ";
 
 			BinaryTree<int> bin;
 			begin = std::chrono::steady_clock::now();
@@ -46,7 +46,7 @@ void main() {
 			end = std::chrono::steady_clock::now();
 			elapsed_ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin);
 			std::cout << elapsed_ms << " Binary tree for " << size << " values" << endl;
-			file << elapsed_ms.count() << " ";
+			file << elapsed_ms.count() * 1000000 / size << " ";
 
 			vector<int> v;
 			begin = std::chrono::steady_clock::now();
@@ -56,7 +56,7 @@ void main() {
 			end = std::chrono::steady_clock::now();
 			elapsed_ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin);
 			std::cout << elapsed_ms << " vector for " << size << " values" << endl;
-			file << elapsed_ms.count() << " ";
+			file << elapsed_ms.count() * 1000000 / size << " ";
 		}
 		file.close();
 	}
@@ -68,7 +68,7 @@ void main() {
 		vector<int> sizes{ 50000, 100000, 200000, 300000, 400000, 500000, 600000, 700000, 800000, 900000, 1000000 };
 		for (const auto& size : sizes) {
 
-			BTree<int> b(15);
+			BTree<int> b(3);
 			set<int> s;
 			BinaryTree<int> bin;
 			vector<int> v;
